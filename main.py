@@ -1,14 +1,15 @@
 from PyQt6.QtWidgets import QApplication, QMainWindow
 from PyQt6.QtGui import QColor, QPainter
+from ui_file import Ui_Form
 import sys
 from PyQt6 import uic
 from random import randint
 
 
-class MyWidget(QMainWindow):
+class MyWidget(QMainWindow, Ui_Form):
     def __init__(self):
         super().__init__()
-        uic.loadUi('Ui.ui', self)
+        self.setupUi(self)
         self.flag = False
         self.Draw.clicked.connect(self.start)
 
