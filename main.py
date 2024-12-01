@@ -1,38 +1,66 @@
-from PyQt6.QtWidgets import QApplication, QMainWindow
-from PyQt6.QtGui import QColor, QPainter
-from ui_file import Ui_Form
+from PyQt6.QtWidgets import QApplication, QMainWindow, QComboBox, QPushButton, QLabel, QTableWidget, QTableWidgetItem
 import sys
 from PyQt6 import uic
-from random import randint
+import sqlite3
 
 
-class MyWidget(QMainWindow, Ui_Form):
+def bobr(ar):
+    con = sqlite3.connect("coffee.sqlite3")
+    cur = con.cursor()
+    res = cur.execute(f"""SELECT * FROM coffee
+    WHERE sort_title = '{ar}'""").fetchall()[0]
+    return res
+
+
+class MyWidget(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setupUi(self)
-        self.flag = False
-        self.Draw.clicked.connect(self.start)
+        self.initUa()
 
-    def paintEvent(self, event):
-        if self.flag:
-            qp = QPainter()
-            qp.begin(self)
-            self.draw(qp)
-            qp.end()
+    def initUa(self):
+        uic.loadUi('main.ui', self)
+        self.resize(717, 300)
+        con = sqlite3.connect("coffee.sqlite3")
+        cur = con.cursor()
+        res = cur.execute("""SELECT sort_title FROM coffee""").fetchall()
+        for el in res:
+            self.comboBox: QComboBox
+            self.comboBox.addItem(el[0])
+        self.but: QPushButton
+        self.but.clicked.connect(self.hi)
+        con.commit()
+        cur.close()
+        con.close()
 
-    def draw(self, qp):
-        qp.setBrush(QColor(255, 255, 0))
-        a = randint(0, 250)
-        qp.drawEllipse(100, 100, a, a)
-        self.flag = False
+    def hi(self):
+        self.comboBox: QComboBox
+        self.table = QTableWidget(2, 7, self)
+        curva = bobr(self.comboBox.currentText())
+        f = []
+        ht = ["ID", "название сорта", "степень обжарки", "молотый/в зернах", "описание вкуса", "цена", "объем упаковки"]
+        for i in range(len(ht)):
+            self.table.setItem(0, i, QTableWidgetItem(ht[i]))
+        self.table.resize(717, 90)
+        self.table.show()
+        for i in range(len(curva)):
+            if curva[i] == 0 and i != 0:
+                self.table.setItem(1, i, QTableWidgetItem("молотый"))
+                f.append("молотый")
+            elif curva[i] == 1 and i != 0:
+                self.table.setItem(1, i, QTableWidgetItem("в зернах"))
+                f.append("в зернах")
+            else:
+                self.table.setItem(1, i, QTableWidgetItem(str(curva[i])))
+                f.append(str(curva[i]))
 
-    def start(self):
-        self.flag = True
-        self.repaint()
+
+def except_hook(cls, exception, traceback):
+    sys.__excepthook__(cls, exception, traceback)
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = MyWidget()
-    ex.show()
+    form = MyWidget()
+    form.show()
+    sys.excepthook = except_hook
     sys.exit(app.exec())
